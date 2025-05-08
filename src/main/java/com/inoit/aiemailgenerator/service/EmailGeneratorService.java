@@ -4,13 +4,10 @@ package com.inoit.aiemailgenerator.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inoit.aiemailgenerator.controller.EmailRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -24,8 +21,8 @@ public class EmailGeneratorService {
 
    private final WebClient webClient;
 
-    public EmailGeneratorService(WebClient webClient) {
-        this.webClient = webClient;
+    public EmailGeneratorService(WebClient.Builder webClient) {
+        this.webClient = webClient.build();
     }
 
 
@@ -45,9 +42,13 @@ public class EmailGeneratorService {
 
         //do request to qet response
 
+        System.out.println(geminiUrl + geminiAPIKey);
+        System.out.println(emailRequest.emailContent());
+
         String response = webClient.post()
                 .uri(geminiUrl+geminiAPIKey)
                 .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -77,11 +78,12 @@ public class EmailGeneratorService {
 
     private String BuildPrompt(EmailRequest emailRequest) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("Generate a professional email reply to the following email without the subject \n ");
+        prompt.append("Generate a professional email reply to the following email without the subject  show interst  \n ");
         if (emailRequest.tone() != null && !emailRequest.tone().isEmpty()) {
             prompt.append("please use the following email tone: ").append(emailRequest.tone());
         }
-        prompt.append("Original Email content:\n").append(emailRequest.EmailContent());
+        System.out.println(emailRequest.emailContent());
+        prompt.append("Original Email content:\n").append(emailRequest.emailContent());
         return prompt.toString();
 
     }
